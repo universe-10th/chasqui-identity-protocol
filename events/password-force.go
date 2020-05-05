@@ -10,7 +10,7 @@ import (
 // is performed by an administrator to a regular user.
 type PasswordForceCallback func(forcing, forced credentials.Credential, passwordSet bool, err error)
 
-// password-force events involve a password set issued
+// Password-force events involve a password set issued
 // by an administrator to a regular user (or other
 // administrator) to be audited. Callbacks can be
 // registered to attend this event, but the involved
