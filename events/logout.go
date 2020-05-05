@@ -18,7 +18,7 @@ type LogoutEvent struct {
 	mutex     sync.Mutex
 }
 
-// Registers a non-null login callback.
+// Registers a non-null logout callback.
 func (event *LogoutEvent) Register(callback LogoutCallback) func() {
 	const MaxInt = uint(^uint(0) >> 1)
 	event.mutex.Lock()
