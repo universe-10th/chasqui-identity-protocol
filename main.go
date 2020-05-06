@@ -2,9 +2,11 @@ package identity
 
 import (
 	"github.com/universe-10th/chasqui"
+	"github.com/universe-10th/chasqui-identity-protocol/events"
 	"github.com/universe-10th/chasqui-protocols"
+	"github.com/universe-10th/chasqui/types"
+	"github.com/universe-10th/identity/authreqs"
 	"github.com/universe-10th/identity/realm"
-	"net"
 )
 
 // An auth protocol provides handlers for several
@@ -18,39 +20,112 @@ import (
 // other protocols, mainly to require authentication
 // or permissions on certain command handler(s).
 type AuthProtocol struct {
+	// Events that trigger actions on credentials being
+	// logged-in, logged-out or password-changed.
+	events.WithAuthEvents
+
+	// A prefix like "auth.", computed from the given namespace.
+	// If the namespace is empty, the prefix will be "", not ".".
+	prefix string
+	// A pre-computed string: "{prefix}user", like "auth.user".
+	// Users will not set this field.
+	currentUserContextKey string
+	// All the available login realms for login and permission check.
+	// Realms are created beforehand (on protocol instantiation).
 	realms map[string]*realm.Realm
+	// "Unauthorized" callbacks trigger when a login or an auth
+	// requirement check fails.
+	// A default handler for when a log-in is required.
+	notLoggedInHandler protocols.MessageHandler
+	// A default handler for when a permission is denied.
+	permissionDeniedHandler protocols.MessageHandler
+}
+
+// Requires authorization (login and perhaps an extra set
+// of requirements) for a message handler. Returns a new
+// wrapped message handler.
+func (authProtocol *AuthProtocol) RequireAuthorization(requirement authreqs.AuthorizationRequirement,
+	handler protocols.MessageHandler,
+	options ...FallbackOption) protocols.MessageHandler {
+	var notLoggedIn, permissionDenied protocols.MessageHandler
+	for _, option := range options {
+		notLoggedIn, permissionDenied = option(notLoggedIn, permissionDenied)
+	}
+	return authProtocol.fullWrap(handler, notLoggedIn, permissionDenied, requirement)
+}
+
+// Requires authorization for the message handlers in the
+// map, by iterating and running RequireAuthorization on
+// on each handler that satisfies the given condition.
+func (authProtocol *AuthProtocol) RequireAuthorizationWhere(requirement authreqs.AuthorizationRequirement,
+	handlers protocols.MessageHandlers,
+	only func(string) bool,
+	options ...FallbackOption) protocols.MessageHandlers {
+	newHandlers := make(protocols.MessageHandlers)
+	for key, handler := range handlers {
+		if only(key) {
+			newHandlers[key] = authProtocol.RequireAuthorization(requirement, handler, options...)
+		} else {
+			newHandlers[key] = handler
+		}
+	}
+	return newHandlers
+}
+
+// Requires authorization for all the message handlers in
+// the map, by iterating and running RequireAuthorization
+// on each handler.
+func (authProtocol *AuthProtocol) RequireAuthorizationAll(requirement authreqs.AuthorizationRequirement,
+	handlers protocols.MessageHandlers,
+	options ...FallbackOption) protocols.MessageHandlers {
+	return authProtocol.RequireAuthorizationWhere(requirement, handlers, func(string) bool { return true }, options...)
 }
 
 // Auth protocols do not have dependencies.
-func (authProtocol *AuthProtocol) Dependencies() protocols.Protocol {
+func (authProtocol *AuthProtocol) Dependencies() protocols.Protocols {
 	return nil
 }
 
 // Auth protocols define their own handlers, which involves a custom
 // namespace to be used.
 func (authProtocol *AuthProtocol) Handlers() protocols.MessageHandlers {
-	// TODO implement this.
-	return nil
+	return protocols.MessageHandlers{
+		authProtocol.prefix + "login": func(server *chasqui.Server, attendant *chasqui.Attendant, message types.Message) {
+
+			args := message.Args()
+			if len(args) != 3 {
+				_ = authProtocol.sendInvalidFormat(authProtocol.prefix+"login", "expected 3 args: identifier, password, realm", attendant)
+			} else {
+				if password, ok := args[1].(string); !ok {
+					_ = authProtocol.sendInvalidFormat(authProtocol.prefix+"login", "password argument must be a string", attendant)
+				} else if realmKey, ok := args[2].(string); !ok {
+					_ = authProtocol.sendInvalidFormat(authProtocol.prefix+"login", "realm argument must be a string", attendant)
+				} else if currentRealm, ok := authProtocol.realms[realmKey]; !ok {
+					_ = authProtocol.sendInvalidFormat(authProtocol.prefix+"login", "realm is invalid", attendant)
+				} else if credential, err := currentRealm.Login(args[0], password); err != nil {
+					authProtocol.setCredential(attendant, credential)
+					authProtocol.OnLogin().Trigger(args[0], password, realmKey, credential, err)
+				} else {
+					authProtocol.OnLogin().Trigger(args[0], password, realmKey, credential, err)
+				}
+			}
+		},
+		authProtocol.prefix + "logout": authProtocol.fullWrap(func(server *chasqui.Server, attendant *chasqui.Attendant, message types.Message) {
+
+		}, authProtocol.notLoggedInHandler, nil, nil),
+		authProtocol.prefix + "change-password": authProtocol.fullWrap(func(server *chasqui.Server, attendant *chasqui.Attendant, message types.Message) {
+
+		}, authProtocol.notLoggedInHandler, nil, nil),
+		authProtocol.prefix + "recover-start": func(server *chasqui.Server, attendant *chasqui.Attendant, message types.Message) {
+
+		},
+		authProtocol.prefix + "recover-cancel": func(server *chasqui.Server, attendant *chasqui.Attendant, message types.Message) {
+
+		},
+		authProtocol.prefix + "recover-confirm": func(server *chasqui.Server, attendant *chasqui.Attendant, message types.Message) {
+
+		},
+	}
 }
 
-func (authProtocol *AuthProtocol) Started(server *chasqui.Server, addr *net.TCPAddr) {
-	// TODO consider if a custom callback should be used, or not, to handle this.
-	// TODO after that, put an appropriate docstring to this method.
-}
-
-func (authProtocol *AuthProtocol) AttendantStarted(server *chasqui.Server, attendant *chasqui.Attendant) {
-	// TODO consider if a custom callback should be used, or not, to handle this.
-	// TODO after that, put an appropriate docstring to this method.
-}
-
-func (authProtocol *AuthProtocol) AttendantStopped(server *chasqui.Server, attendant *chasqui.Attendant, stopType chasqui.AttendantStopType, err error) {
-	// TODO consider if a custom callback should be used, or not, to handle this.
-	// TODO after that, put an appropriate docstring to this method.
-}
-
-func (authProtocol *AuthProtocol) Stopped(server *chasqui.Server) {
-	// TODO consider if a custom callback should be used, or not, to handle this.
-	// TODO after that, put an appropriate docstring to this method.
-}
-
-// TODO implement the auth-wrappers and permissions-wrappers for one, several, and all handlers.
+var _ protocols.Protocol = &AuthProtocol{}
