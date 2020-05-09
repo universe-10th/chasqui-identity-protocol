@@ -1,0 +1,31 @@
+Login request:
+  - Required to be NOT LOGGED IN.
+    - On failure, abort with an error telling it is already logged in.
+  - identifier, password, realm key, error <- extract the 3 arguments.
+    - On error, abort with the given (format / argument) error.
+  - realm <- obtain realm from realm key.
+    - On error, abort with invalid realm.
+  - credential, error <- login.
+    - On error, abort with the given (source / pipeline) error.
+  - Attempt a "landing" using (attendant, identifier, realm, credential):
+    - If accepted (with unified [pointer] qualified key):
+      - Keep both the qualified key and the credential in attendant's context.
+      - Effectively "land" the user in the ecosystem (add it to the internal
+        state of the ecosystem for further checks).
+      - Succeed.
+      - TRIGGER the logged in event (attendant, realm, realm key, credential).
+    - If rejected (with an error):
+      - Abort with the returned error.
+    - If there are attendants to ghost:
+      - For each attendant:
+        - EXECUTE the logout method on attendant, with type=forced and reason=ghosted.
+
+Logout request:
+  - Required to be ALREADY LOGGED IN.
+    - On failure, abort with an error telling it is not logged in.
+  - Attempt a "lifting" using (attendant). The lift will always succeed.
+  - Get the realm by realm key in the qualified key.
+  - TRIGGER the logging out event (attendant, realm, realm key, credential).
+  - Remove the current credential and qualified key.
+  - Succeed.
+  - TRIGGER the logged out event (attendant, realm, realm key, credential).
