@@ -29,3 +29,16 @@ Logout request:
   - Remove the current credential and qualified key.
   - Succeed.
   - TRIGGER the logged out event (attendant, realm, realm key, credential).
+
+Set password request:
+  - Required to be ALREADY LOGGED IN.
+    - On failure, abort with an error telling it is not logged in.
+  - password, new password <- extract the 2 arguments.
+    - On error, abort with the given (format / argument) error.
+  - Get the realm by realm they in the qualified key.
+  - Attempt a password change in the realm for the  credential.
+    - On error, abort with the returned error.
+    - On success:
+      - Succeed.
+      - TRIGGER the password changed event (attendant, realm, realm key, credential).
+
