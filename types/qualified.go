@@ -15,9 +15,26 @@ type QualifiedKey struct {
 	realm *realms.Realm
 }
 
+// The key part of this qualified key. This key may be
+// the credential's identifier, the credential's lookup
+// index, or the identifier used on login.
+func (qualifiedKey QualifiedKey) Key() interface{} {
+	return qualifiedKey.Key
+}
+
+// The realm that serves as a namespace that qualifies
+// this key.
+func (qualifiedKey QualifiedKey) Realm() *realms.Realm {
+	return qualifiedKey.realm
+}
+
 // Creates a session key to track, for different credential
 // instances, how many of them are the same (to tell when
-// the logged credentials are the same).
+// the logged credentials are the same). Given the login
+// credential, it attempts to retrieve its identification,
+// its index, or use the identification that was used on
+// login (usually a bad idea, since it has a chance of being
+// non-unique).
 func NewQualifiedKey(credential credentials.Credential, identifier interface{}, realm *realms.Realm) QualifiedKey {
 	if identifiedCredential, ok := credential.(identified.Identified); ok {
 		return QualifiedKey{
