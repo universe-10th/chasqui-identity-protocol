@@ -5,9 +5,19 @@ import (
 	"sync"
 )
 
+// The stage to catch the logout event: before logging
+// out (for cleanup and logic termination purposes), or
+// after the logout was done (for reporting purposes).
+type LogoutStage uint
+
+const (
+	Before LogoutStage = iota
+	After
+)
+
 // A logout success callback. Logout only means
 // dropping a context value in an attendant.
-type LogoutCallback func(credential credentials.Credential)
+type LogoutCallback func(credential credentials.Credential, stage LogoutStage)
 
 // Logout events involve a logout command to be
 // audited. Callbacks can be registered to attend
@@ -48,14 +58,14 @@ func (event *LogoutEvent) Register(callback LogoutCallback) func() {
 
 // Wraps and triggers a callback, by calling it and diaper-catching
 // any panic.
-func (event *LogoutEvent) trigger(callback LogoutCallback, credential credentials.Credential) {
+func (event *LogoutEvent) trigger(callback LogoutCallback, credential credentials.Credential, stage LogoutStage) {
 	defer func() { recover() }()
-	callback(credential)
+	callback(credential, stage)
 }
 
 // Triggers all the callbacks. Hopefully, few callbacks will be triggered.
-func (event *LogoutEvent) Trigger(credential credentials.Credential) {
+func (event *LogoutEvent) Trigger(credential credentials.Credential, stage LogoutStage) {
 	for _, callback := range event.callbacks {
-		event.trigger(callback, credential)
+		event.trigger(callback, credential, stage)
 	}
 }
