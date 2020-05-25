@@ -2,6 +2,7 @@ package identity
 
 import (
 	"github.com/universe-10th/chasqui-identity-protocols/auth/events"
+	"github.com/universe-10th/chasqui-identity-protocols/auth/types"
 	protocols "github.com/universe-10th/chasqui-protocols"
 	"github.com/universe-10th/identity/realms"
 )
@@ -30,6 +31,8 @@ type AuthProtocol struct {
 	// All the available login realms for login and permission check.
 	// Realms are created beforehand (on protocol instantiation).
 	realms map[string]*realms.Realm
+	// The domain for this authentication protocol.
+	domain *types.Domain
 	// "Unauthorized" callbacks trigger when a login or an auth
 	// requirement check fails.
 	// A default handler for when a log-in is required.
@@ -37,3 +40,8 @@ type AuthProtocol struct {
 	// A default handler for when a permission is denied.
 	permissionDeniedHandler protocols.MessageHandler
 }
+
+// TODO Make an appropriate constructor for this class.
+// TODO Always considering the domain construction.
+// TODO Add, also, some getters (in particular for the
+// TODO domain users/connections).

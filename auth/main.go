@@ -28,6 +28,7 @@ func (authProtocol *AuthProtocol) Handlers() protocols.MessageHandlers {
 					_ = authProtocol.sendInvalidFormat(authProtocol.prefix+"login", "realm is invalid", attendant)
 				} else if credential, err := currentRealm.Login(args[0], password); err != nil {
 					authProtocol.setCredential(attendant, credential)
+					// TODO use the domain here to condition the login process.
 					authProtocol.OnLogin().Trigger(args[0], password, realmKey, credential, err)
 				} else {
 					authProtocol.OnLogin().Trigger(args[0], password, realmKey, credential, err)
@@ -35,10 +36,10 @@ func (authProtocol *AuthProtocol) Handlers() protocols.MessageHandlers {
 			}
 		},
 		authProtocol.prefix + "logout": authProtocol.fullWrap(func(server *chasqui.Server, attendant *chasqui.Attendant, message types.Message) {
-
+			// TODO Implement, including using the domain.
 		}, authProtocol.notLoggedInHandler, nil, nil),
 		authProtocol.prefix + "change-password": authProtocol.fullWrap(func(server *chasqui.Server, attendant *chasqui.Attendant, message types.Message) {
-
+			// TODO Implement.
 		}, authProtocol.notLoggedInHandler, nil, nil),
 	}
 }

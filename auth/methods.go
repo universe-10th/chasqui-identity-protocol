@@ -44,3 +44,5 @@ func (authProtocol *AuthProtocol) RequireAuthorizationAll(requirement authreqs.A
 	options ...FallbackOption) protocols.MessageHandlers {
 	return authProtocol.RequireAuthorizationWhere(requirement, handlers, func(string) bool { return true }, options...)
 }
+
+// TODO a Logout method, which will serve as kick, ghost, or graceful -user-requested- logout.

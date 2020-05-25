@@ -180,3 +180,5 @@ func (domain *Domain) RemoveSession(key QualifiedKey, server *chasqui.Server, at
 	delete(domain.sessions[server][qualifiedKey], attendant)
 	domain.clearKey(server, qualifiedKey)
 }
+
+// TODO add a mean to enumerate the sessions.
