@@ -20,7 +20,7 @@ type DomainRule uint8
 // the new connection, and a list of existing attendants -with the
 // same credential in session, ideally- that should be "ghosted".
 type DomainCustomCriterion func(credentials.Credential, QualifiedKey, *chasqui.Server,
-	*chasqui.Attendant) (bool, []*chasqui.Attendant)
+	*chasqui.Attendant) (bool, map[*chasqui.Attendant]bool)
 
 const (
 	// Allows the same credential being logged multiple times.
@@ -79,15 +79,15 @@ type Domain struct {
 	// this, to not spawn several repeated structures
 	// for long time.
 	unifiedKeys map[*chasqui.Server]map[QualifiedKey]*QualifiedKey
-	// Given a well known pointer, gets a list of
+	// Given a well known pointer, gets a map of
 	// attendants using the matching credential.
-	sessions map[*chasqui.Server]map[*QualifiedKey][]*chasqui.Attendant
+	sessions map[*chasqui.Server]map[*QualifiedKey]map[*chasqui.Attendant]bool
 }
 
 // For a given server this domain is used on, and a
 // given key, returns a unified or "well known" value
 // to be used as session's key (for a given attendant).
-func (domain *Domain) loginKey(server *chasqui.Server, key QualifiedKey) *QualifiedKey {
+func (domain *Domain) unifyKey(server *chasqui.Server, key QualifiedKey) *QualifiedKey {
 	if _, ok := domain.unifiedKeys[server]; !ok {
 		domain.unifiedKeys[server] = map[QualifiedKey]*QualifiedKey{}
 	}
@@ -103,7 +103,7 @@ func (domain *Domain) loginKey(server *chasqui.Server, key QualifiedKey) *Qualif
 // For a given server this domain is used on, and a
 // given unified key, drops the key if no connections
 // are referencing it in their sessions.
-func (domain *Domain) logoutKey(server *chasqui.Server, key *QualifiedKey) {
+func (domain *Domain) clearKey(server *chasqui.Server, key *QualifiedKey) {
 	if sessions, ok := domain.sessions[server]; ok {
 		if value, ok := sessions[key]; ok {
 			if len(value) == 0 {
@@ -119,7 +119,7 @@ func (domain *Domain) logoutKey(server *chasqui.Server, key *QualifiedKey) {
 // change (in particular: ghost removal) in the current
 // status of the domain.
 func (domain *Domain) CheckLanding(credential credentials.Credential, key QualifiedKey,
-	server *chasqui.Server, attendant *chasqui.Attendant) (bool, []*chasqui.Attendant) {
+	server *chasqui.Server, attendant *chasqui.Attendant) (bool, map[*chasqui.Attendant]bool) {
 	switch domain.rule {
 	case Multiple:
 		// Since multiple logins are allowed, then there
@@ -152,4 +152,31 @@ func (domain *Domain) CheckLanding(credential credentials.Credential, key Qualif
 	default:
 		return domain.criterion(credential, key, server, attendant)
 	}
+}
+
+// Given a qualified key, the server and the attendant, it
+// adds the current attendant to the domain under the server
+// and the unified key related to the given key.
+func (domain *Domain) AddSession(key QualifiedKey, server *chasqui.Server, attendant *chasqui.Attendant) *QualifiedKey {
+	qualifiedKey := domain.unifyKey(server, key)
+	if _, ok := domain.sessions[server]; !ok {
+		domain.sessions[server] = map[*QualifiedKey]map[*chasqui.Attendant]bool{}
+	}
+	sessions := domain.sessions[server][qualifiedKey]
+	if sessions == nil {
+		sessions = make(map[*chasqui.Attendant]bool)
+	}
+	sessions[attendant] = true
+	domain.sessions[server][qualifiedKey] = sessions
+	return qualifiedKey
+}
+
+// Given a qualified key, the server and the attendant, it
+// removes the given attendant from the domain under the
+// server, and checks whether the corresponding unified key
+// should also be cleared.
+func (domain *Domain) RemoveSession(key QualifiedKey, server *chasqui.Server, attendant *chasqui.Attendant) {
+	qualifiedKey := domain.unifyKey(server, key)
+	delete(domain.sessions[server][qualifiedKey], attendant)
+	domain.clearKey(server, qualifiedKey)
 }
