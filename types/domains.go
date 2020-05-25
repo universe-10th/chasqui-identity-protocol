@@ -118,7 +118,7 @@ func (domain *Domain) logoutKey(server *chasqui.Server, key *QualifiedKey) {
 // yet successful login attempt. It does not perform any
 // change (in particular: ghost removal) in the current
 // status of the domain.
-func (domain *Domain) checkLanding(credential credentials.Credential, key QualifiedKey,
+func (domain *Domain) CheckLanding(credential credentials.Credential, key QualifiedKey,
 	server *chasqui.Server, attendant *chasqui.Attendant) (bool, []*chasqui.Attendant) {
 	switch domain.rule {
 	case Multiple:
