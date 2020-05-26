@@ -55,10 +55,12 @@ func (authProtocol *AuthProtocol) setQualifiedKey(attendant *chasqui.Attendant, 
 }
 
 // Removes, and returns, the qualified key for this attendant.
-func (authProtocol *AuthProtocol) popQualifiedKey(attendant *chasqui.Attendant) *types2.QualifiedKey {
+func (authProtocol *AuthProtocol) getQualifiedKey(attendant *chasqui.Attendant, pop bool) *types2.QualifiedKey {
 	if key, ok := attendant.Context(authProtocol.currentQualifiedKeyContextKey); ok {
 		if key, ok := key.(*types2.QualifiedKey); ok {
-			attendant.RemoveContext(authProtocol.currentQualifiedKeyContextKey)
+			if pop {
+				attendant.RemoveContext(authProtocol.currentQualifiedKeyContextKey)
+			}
 			return key
 		}
 	}

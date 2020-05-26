@@ -10,6 +10,7 @@ import (
 )
 
 var ErrRejectedByDomain = errors.New("rejected - already logged in")
+var ErrMissingUnifiedKey = errors.New("missing unified key in context")
 
 // Auth protocols do not have dependencies.
 func (authProtocol *AuthProtocol) Dependencies() protocols.Protocols {
@@ -62,7 +63,27 @@ func (authProtocol *AuthProtocol) Handlers() protocols.MessageHandlers {
 			authProtocol.Logout(server, attendant, "graceful", "")
 		}, authProtocol.notLoggedInHandler, nil, nil),
 		authProtocol.prefix + "change-password": authProtocol.fullWrap(func(server *chasqui.Server, attendant *chasqui.Attendant, message types.Message) {
-			// TODO Implement.
+			args := message.Args()
+			if len(args) != 1 {
+				_ = authProtocol.sendInvalidFormat(authProtocol.prefix+"change-password", "exactly one string argument must be supplied", attendant)
+			} else if password, ok := args[0].(string); !ok {
+				_ = authProtocol.sendInvalidFormat(authProtocol.prefix+"change-password", "exactly one string argument must be supplied", attendant)
+			} else {
+				credential := authProtocol.getCredential(attendant)
+				if unifiedKey := authProtocol.getQualifiedKey(attendant, false); unifiedKey != nil {
+					realm := unifiedKey.Realm()
+					if err := realm.SetPassword(credential, password); err != nil {
+						_ = attendant.Send(authProtocol.prefix+"change-password.error", nil, nil)
+						authProtocol.OnPasswordChange().Trigger(server, attendant, credential, err)
+					} else {
+						_ = attendant.Send(authProtocol.prefix+"change-password.success", nil, nil)
+						authProtocol.OnPasswordChange().Trigger(server, attendant, credential, nil)
+					}
+				} else {
+					_ = attendant.Send(authProtocol.prefix+"change-password.error", nil, nil)
+					authProtocol.OnPasswordChange().Trigger(server, attendant, credential, ErrMissingUnifiedKey)
+				}
+			}
 		}, authProtocol.notLoggedInHandler, nil, nil),
 	}
 }

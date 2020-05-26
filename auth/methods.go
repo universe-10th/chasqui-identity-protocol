@@ -53,7 +53,7 @@ func (authProtocol *AuthProtocol) RequireAuthorizationAll(requirement authreqs.A
 func (authProtocol *AuthProtocol) Logout(server *chasqui.Server, attendant *chasqui.Attendant, logoutType, reason string) {
 	if cred := authProtocol.getCredential(attendant); cred != nil {
 		authProtocol.OnLogout().Trigger(server, attendant, cred, events.Before)
-		if qualifiedKey := authProtocol.popQualifiedKey(attendant); qualifiedKey != nil {
+		if qualifiedKey := authProtocol.getQualifiedKey(attendant, true); qualifiedKey != nil {
 			authProtocol.domain.RemoveSession(*qualifiedKey, server, attendant)
 		}
 		_ = attendant.Send(authProtocol.prefix+"logout.success", types.Args{logoutType, reason}, nil)
