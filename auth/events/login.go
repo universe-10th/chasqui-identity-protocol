@@ -48,7 +48,7 @@ func (event *LoginEvent) Register(callback LoginCallback) func() {
 
 // Wraps and triggers a callback, by calling it and diaper-catching
 // any panic.
-func (event *LoginEvent) trigger(server *chasqui.Server, attendant *chasqui.Attendant, callback LoginCallback, identifier interface{}, password, realm string, credential credentials.Credential, err error) {
+func (event *LoginEvent) trigger(callback LoginCallback, server *chasqui.Server, attendant *chasqui.Attendant, identifier interface{}, password, realm string, credential credentials.Credential, err error) {
 	defer func() { recover() }()
 	callback(server, attendant, identifier, password, realm, credential, err)
 }
@@ -56,6 +56,6 @@ func (event *LoginEvent) trigger(server *chasqui.Server, attendant *chasqui.Atte
 // Triggers all the callbacks. Hopefully, few callbacks will be triggered.
 func (event *LoginEvent) Trigger(server *chasqui.Server, attendant *chasqui.Attendant, identifier interface{}, password, realm string, credential credentials.Credential, err error) {
 	for _, callback := range event.callbacks {
-		event.trigger(server, attendant, callback, identifier, password, realm, credential, err)
+		event.trigger(callback, server, attendant, identifier, password, realm, credential, err)
 	}
 }

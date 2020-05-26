@@ -1,13 +1,14 @@
 package events
 
 import (
+	"github.com/universe-10th/chasqui"
 	"github.com/universe-10th/identity/credentials"
 	"sync"
 )
 
 // A password-change callback. It is recorded whether the
 // password was successfully changed or not.
-type PasswordChangeCallback func(credential credentials.Credential, err error)
+type PasswordChangeCallback func(*chasqui.Server, *chasqui.Attendant, credentials.Credential, error)
 
 // Password-change events involve a password change issued
 // by the same user to be audited. Callbacks can be
@@ -49,14 +50,14 @@ func (event *PasswordChangeEvent) Register(callback PasswordChangeCallback) func
 
 // Wraps and triggers a callback, by calling it and diaper-catching
 // any panic.
-func (event *PasswordChangeEvent) trigger(callback PasswordChangeCallback, credential credentials.Credential, err error) {
+func (event *PasswordChangeEvent) trigger(callback PasswordChangeCallback, server *chasqui.Server, attendant *chasqui.Attendant, credential credentials.Credential, err error) {
 	defer func() { recover() }()
-	callback(credential, err)
+	callback(server, attendant, credential, err)
 }
 
 // Triggers all the callbacks. Hopefully, few callbacks will be triggered.
-func (event *PasswordChangeEvent) Trigger(credential credentials.Credential, err error) {
+func (event *PasswordChangeEvent) Trigger(server *chasqui.Server, attendant *chasqui.Attendant, credential credentials.Credential, err error) {
 	for _, callback := range event.callbacks {
-		event.trigger(callback, credential, err)
+		event.trigger(callback, server, attendant, credential, err)
 	}
 }

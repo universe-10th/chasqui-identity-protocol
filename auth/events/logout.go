@@ -59,7 +59,7 @@ func (event *LogoutEvent) Register(callback LogoutCallback) func() {
 
 // Wraps and triggers a callback, by calling it and diaper-catching
 // any panic.
-func (event *LogoutEvent) trigger(server *chasqui.Server, attendant *chasqui.Attendant, callback LogoutCallback, credential credentials.Credential, stage LogoutStage) {
+func (event *LogoutEvent) trigger(callback LogoutCallback, server *chasqui.Server, attendant *chasqui.Attendant, credential credentials.Credential, stage LogoutStage) {
 	defer func() { recover() }()
 	callback(server, attendant, credential, stage)
 }
@@ -67,6 +67,6 @@ func (event *LogoutEvent) trigger(server *chasqui.Server, attendant *chasqui.Att
 // Triggers all the callbacks. Hopefully, few callbacks will be triggered.
 func (event *LogoutEvent) Trigger(server *chasqui.Server, attendant *chasqui.Attendant, credential credentials.Credential, stage LogoutStage) {
 	for _, callback := range event.callbacks {
-		event.trigger(server, attendant, callback, credential, stage)
+		event.trigger(callback, server, attendant, credential, stage)
 	}
 }
