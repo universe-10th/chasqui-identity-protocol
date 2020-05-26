@@ -1,7 +1,10 @@
 package identity
 
 import (
+	"github.com/universe-10th/chasqui"
+	"github.com/universe-10th/chasqui-identity-protocols/auth/events"
 	protocols "github.com/universe-10th/chasqui-protocols"
+	"github.com/universe-10th/chasqui/types"
 	"github.com/universe-10th/identity/authreqs"
 )
 
@@ -45,4 +48,15 @@ func (authProtocol *AuthProtocol) RequireAuthorizationAll(requirement authreqs.A
 	return authProtocol.RequireAuthorizationWhere(requirement, handlers, func(string) bool { return true }, options...)
 }
 
-// TODO a Logout method, which will serve as kick, ghost, or graceful -user-requested- logout.
+// Performs a logout on certain server/attendant, with a
+// given type and an underlying reason.
+func (authProtocol *AuthProtocol) Logout(server *chasqui.Server, attendant *chasqui.Attendant, logoutType, reason string) {
+	if cred := authProtocol.getCredential(attendant); cred != nil {
+		authProtocol.OnLogout().Trigger(server, attendant, cred, events.Before)
+		if qualifiedKey := authProtocol.popQualifiedKey(attendant); qualifiedKey != nil {
+			authProtocol.domain.RemoveSession(*qualifiedKey, server, attendant)
+		}
+		_ = attendant.Send(authProtocol.prefix+"logout.success", types.Args{logoutType, reason}, nil)
+		authProtocol.OnLogout().Trigger(server, attendant, cred, events.After)
+	}
+}

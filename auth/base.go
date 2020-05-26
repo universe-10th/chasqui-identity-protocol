@@ -28,6 +28,9 @@ type AuthProtocol struct {
 	// A pre-computed string: "{prefix}user", like "auth.user".
 	// Users will not set this field.
 	currentUserContextKey string
+	// A pre-computed string: "{prefix}key", like "auth.key".
+	// Users will not set this field.
+	currentQualifiedKeyContextKey string
 	// All the available login realms for login and permission check.
 	// Realms are created beforehand (on protocol instantiation).
 	realms map[string]*realms.Realm

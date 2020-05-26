@@ -1,6 +1,7 @@
 package events
 
 import (
+	"github.com/universe-10th/chasqui"
 	"github.com/universe-10th/identity/credentials"
 	"sync"
 )
@@ -17,7 +18,7 @@ const (
 
 // A logout success callback. Logout only means
 // dropping a context value in an attendant.
-type LogoutCallback func(credential credentials.Credential, stage LogoutStage)
+type LogoutCallback func(*chasqui.Server, *chasqui.Attendant, credentials.Credential, LogoutStage)
 
 // Logout events involve a logout command to be
 // audited. Callbacks can be registered to attend
@@ -58,14 +59,14 @@ func (event *LogoutEvent) Register(callback LogoutCallback) func() {
 
 // Wraps and triggers a callback, by calling it and diaper-catching
 // any panic.
-func (event *LogoutEvent) trigger(callback LogoutCallback, credential credentials.Credential, stage LogoutStage) {
+func (event *LogoutEvent) trigger(server *chasqui.Server, attendant *chasqui.Attendant, callback LogoutCallback, credential credentials.Credential, stage LogoutStage) {
 	defer func() { recover() }()
-	callback(credential, stage)
+	callback(server, attendant, credential, stage)
 }
 
 // Triggers all the callbacks. Hopefully, few callbacks will be triggered.
-func (event *LogoutEvent) Trigger(credential credentials.Credential, stage LogoutStage) {
+func (event *LogoutEvent) Trigger(server *chasqui.Server, attendant *chasqui.Attendant, credential credentials.Credential, stage LogoutStage) {
 	for _, callback := range event.callbacks {
-		event.trigger(callback, credential, stage)
+		event.trigger(server, attendant, callback, credential, stage)
 	}
 }
