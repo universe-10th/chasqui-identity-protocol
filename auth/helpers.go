@@ -2,6 +2,7 @@ package identity
 
 import (
 	"github.com/universe-10th/chasqui"
+	types2 "github.com/universe-10th/chasqui-identity-protocols/auth/types"
 	protocols "github.com/universe-10th/chasqui-protocols"
 	"github.com/universe-10th/chasqui/types"
 	"github.com/universe-10th/identity/authreqs"
@@ -46,6 +47,22 @@ func (authProtocol *AuthProtocol) removeCredential(attendant *chasqui.Attendant)
 // Sets the current credential in a given attendant.
 func (authProtocol *AuthProtocol) setCredential(attendant *chasqui.Attendant, credential credentials.Credential) {
 	attendant.SetContext(authProtocol.currentUserContextKey, credential)
+}
+
+// Sets the qualified key for this attendant in their domain.
+func (authProtocol *AuthProtocol) setQualifiedKey(attendant *chasqui.Attendant, key *types2.QualifiedKey) {
+	attendant.SetContext(authProtocol.currentQualifiedKeyContextKey, key)
+}
+
+// Removes, and returns, the qualified key for this attendant.
+func (authProtocol *AuthProtocol) popQualifiedKey(attendant *chasqui.Attendant) *types2.QualifiedKey {
+	if key, ok := attendant.Context(authProtocol.currentQualifiedKeyContextKey); ok {
+		if key, ok := key.(*types2.QualifiedKey); ok {
+			attendant.RemoveContext(authProtocol.currentQualifiedKeyContextKey)
+			return key
+		}
+	}
+	return nil
 }
 
 // Fully wraps a handler inside an authorization flow,
