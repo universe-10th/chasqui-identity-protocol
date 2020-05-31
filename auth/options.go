@@ -1,4 +1,4 @@
-package identity
+package auth
 
 import protocols "github.com/universe-10th/chasqui-protocols"
 

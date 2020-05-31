@@ -1,4 +1,4 @@
-package identity
+package auth
 
 // This file describes the extra protocol hooks for the auth protocol.
 // These hooks are dumbly implemented as empty, since no tracking needs

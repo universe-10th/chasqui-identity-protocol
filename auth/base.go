@@ -1,4 +1,4 @@
-package identity
+package auth
 
 import (
 	"github.com/universe-10th/chasqui-identity-protocols/auth/events"
