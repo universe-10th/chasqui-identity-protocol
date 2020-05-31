@@ -3,6 +3,7 @@ package auth
 import (
 	"github.com/universe-10th/chasqui"
 	"github.com/universe-10th/chasqui-identity-protocols/auth/events"
+	types2 "github.com/universe-10th/chasqui-identity-protocols/auth/types"
 	protocols "github.com/universe-10th/chasqui-protocols"
 	"github.com/universe-10th/chasqui/types"
 	"github.com/universe-10th/identity/authreqs"
@@ -65,4 +66,10 @@ func (authProtocol *AuthProtocol) Logout(server *chasqui.Server, attendant *chas
 // Gets the current user, if any.
 func (authProtocol *AuthProtocol) Current(attendant *chasqui.Attendant) credentials.Credential {
 	return authProtocol.getCredential(attendant)
+}
+
+// Given a server, it enumerates all the current sessions
+// telling their qualified key and their underlying socket.
+func (authProtocol *AuthProtocol) Enumerate(server *chasqui.Server, callback func(*types2.QualifiedKey, *chasqui.Attendant) bool) {
+	authProtocol.domain.Enumerate(server, callback)
 }
