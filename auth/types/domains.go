@@ -194,3 +194,17 @@ func (domain *Domain) Enumerate(server *chasqui.Server, callback func(*Qualified
 		}
 	}
 }
+
+// Gets the session(s), in certain server, by specified
+// (non-unified) qualified key.
+func (domain *Domain) GetSessions(server *chasqui.Server, key QualifiedKey) map[*chasqui.Attendant]bool {
+	if unifiedKeys, ok := domain.unifiedKeys[server]; !ok {
+		return nil
+	} else if unifiedKey, ok := unifiedKeys[key]; !ok {
+		return nil
+	} else if sessions, ok := domain.sessions[server]; !ok {
+		return nil
+	} else {
+		return sessions[unifiedKey]
+	}
+}

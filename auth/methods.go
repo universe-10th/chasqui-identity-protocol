@@ -73,3 +73,9 @@ func (authProtocol *AuthProtocol) Current(attendant *chasqui.Attendant) credenti
 func (authProtocol *AuthProtocol) Enumerate(server *chasqui.Server, callback func(*types2.QualifiedKey, *chasqui.Attendant) bool) {
 	authProtocol.domain.Enumerate(server, callback)
 }
+
+// Gets the session(s), in certain server, by specified
+// (non-unified) qualified key.
+func (authProtocol *AuthProtocol) GetSessions(server *chasqui.Server, key types2.QualifiedKey) map[*chasqui.Attendant]bool {
+	return authProtocol.domain.GetSessions(server, key)
+}
