@@ -6,6 +6,7 @@ import (
 	protocols "github.com/universe-10th/chasqui-protocols"
 	"github.com/universe-10th/chasqui/types"
 	"github.com/universe-10th/identity/authreqs"
+	"github.com/universe-10th/identity/credentials"
 )
 
 // Requires authorization (login and perhaps an extra set
@@ -59,4 +60,9 @@ func (authProtocol *AuthProtocol) Logout(server *chasqui.Server, attendant *chas
 		_ = attendant.Send(authProtocol.prefix+"logout.success", types.Args{logoutType, reason}, nil)
 		authProtocol.OnLogout().Trigger(server, attendant, cred, events.After)
 	}
+}
+
+// Gets the current user, if any.
+func (authProtocol *AuthProtocol) Current(attendant *chasqui.Attendant) credentials.Credential {
+	return authProtocol.getCredential(attendant)
 }
