@@ -13,9 +13,10 @@ import (
 // Requires authorization (login and perhaps an extra set
 // of requirements) for a message handler. Returns a new
 // wrapped message handler.
-func (authProtocol *AuthProtocol) RequireAuthorization(requirement authreqs.AuthorizationRequirement,
-	handler protocols.MessageHandler,
-	options ...FallbackOption) protocols.MessageHandler {
+func (authProtocol *AuthProtocol) RequireAuthorization(
+	requirement authreqs.AuthorizationRequirement,
+	handler protocols.MessageHandler, options ...FallbackOption,
+) protocols.MessageHandler {
 	var notLoggedIn, permissionDenied protocols.MessageHandler
 	for _, option := range options {
 		notLoggedIn, permissionDenied = option(notLoggedIn, permissionDenied)
@@ -26,10 +27,10 @@ func (authProtocol *AuthProtocol) RequireAuthorization(requirement authreqs.Auth
 // Requires authorization for the message handlers in the
 // map, by iterating and running RequireAuthorization on
 // on each handler that satisfies the given condition.
-func (authProtocol *AuthProtocol) RequireAuthorizationWhere(requirement authreqs.AuthorizationRequirement,
-	handlers protocols.MessageHandlers,
-	only func(string) bool,
-	options ...FallbackOption) protocols.MessageHandlers {
+func (authProtocol *AuthProtocol) RequireAuthorizationWhere(
+	requirement authreqs.AuthorizationRequirement, handlers protocols.MessageHandlers,
+	only func(string) bool, options ...FallbackOption,
+) protocols.MessageHandlers {
 	newHandlers := make(protocols.MessageHandlers)
 	for key, handler := range handlers {
 		if only(key) {
@@ -44,9 +45,9 @@ func (authProtocol *AuthProtocol) RequireAuthorizationWhere(requirement authreqs
 // Requires authorization for all the message handlers in
 // the map, by iterating and running RequireAuthorization
 // on each handler.
-func (authProtocol *AuthProtocol) RequireAuthorizationAll(requirement authreqs.AuthorizationRequirement,
-	handlers protocols.MessageHandlers,
-	options ...FallbackOption) protocols.MessageHandlers {
+func (authProtocol *AuthProtocol) RequireAuthorizationAll(
+	requirement authreqs.AuthorizationRequirement, handlers protocols.MessageHandlers, options ...FallbackOption,
+) protocols.MessageHandlers {
 	return authProtocol.RequireAuthorizationWhere(requirement, handlers, func(string) bool { return true }, options...)
 }
 
@@ -72,10 +73,4 @@ func (authProtocol *AuthProtocol) Current(attendant *chasqui.Attendant) credenti
 // telling their qualified key and their underlying socket.
 func (authProtocol *AuthProtocol) Enumerate(server *chasqui.Server, callback func(*types2.QualifiedKey, *chasqui.Attendant) bool) {
 	authProtocol.domain.Enumerate(server, callback)
-}
-
-// Gets the session(s), in certain server, by specified
-// (non-unified) qualified key.
-func (authProtocol *AuthProtocol) GetSessions(server *chasqui.Server, key types2.QualifiedKey) map[*chasqui.Attendant]bool {
-	return authProtocol.domain.GetSessions(server, key)
 }

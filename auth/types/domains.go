@@ -195,16 +195,13 @@ func (domain *Domain) Enumerate(server *chasqui.Server, callback func(*Qualified
 	}
 }
 
-// Gets the session(s), in certain server, by specified
-// (non-unified) qualified key.
-func (domain *Domain) GetSessions(server *chasqui.Server, key QualifiedKey) map[*chasqui.Attendant]bool {
-	if unifiedKeys, ok := domain.unifiedKeys[server]; !ok {
-		return nil
-	} else if unifiedKey, ok := unifiedKeys[key]; !ok {
-		return nil
-	} else if sessions, ok := domain.sessions[server]; !ok {
-		return nil
-	} else {
-		return sessions[unifiedKey]
+// Creates a new domain instance for an auth protocol, given it rule
+// and, if applicable, the custom criterion.
+func NewDomain(rule DomainRule, criterion DomainCustomCriterion) *Domain {
+	return &Domain{
+		rule:        rule,
+		criterion:   criterion,
+		unifiedKeys: map[*chasqui.Server]map[QualifiedKey]*QualifiedKey{},
+		sessions:    map[*chasqui.Server]map[*QualifiedKey]map[*chasqui.Attendant]bool{},
 	}
 }
