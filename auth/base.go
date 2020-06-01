@@ -1,9 +1,11 @@
 package auth
 
 import (
+	"github.com/universe-10th/chasqui"
 	"github.com/universe-10th/chasqui-identity-protocols/auth/events"
 	"github.com/universe-10th/chasqui-identity-protocols/auth/types"
 	protocols "github.com/universe-10th/chasqui-protocols"
+	types2 "github.com/universe-10th/chasqui/types"
 	"github.com/universe-10th/identity/realms"
 )
 
@@ -44,7 +46,36 @@ type AuthProtocol struct {
 	permissionDeniedHandler protocols.MessageHandler
 }
 
-// TODO Make an appropriate constructor for this class.
-// TODO Always considering the domain construction.
-// TODO Add, also, some getters (in particular for the
-// TODO domain users/connections).
+// By default, the domain will be of a single-locking
+// type, and the notLoggedIn / permissionDenied handlers
+// will just send standard messages to the attendants.
+func NewAuthProtocol(realms map[string]*realms.Realm, options ...AuthOption) *AuthProtocol {
+	protocol := &AuthProtocol{
+		WithAuthEvents: events.NewWithAuthEvents(),
+		realms:         realms,
+		prefix:         "auth",
+		domain:         types.NewDomain(types.SingleLocking, nil),
+	}
+
+	protocol.notLoggedInHandler = func(server *chasqui.Server, attendant *chasqui.Attendant, message types2.Message) {
+		// noinspection GoUnhandledErrorResult
+		attendant.Send(protocol.prefix+"login-required", nil, nil)
+	}
+	protocol.permissionDeniedHandler = func(server *chasqui.Server, attendant *chasqui.Attendant, message types2.Message) {
+		// noinspection GoUnhandledErrorResult
+		attendant.Send(protocol.prefix+"permission-denied", nil, nil)
+	}
+
+	for _, option := range options {
+		option(protocol)
+	}
+
+	if protocol.prefix != "" {
+		protocol.currentUserContextKey = protocol.prefix + ".user"
+		protocol.currentQualifiedKeyContextKey = protocol.prefix + ".key"
+		protocol.prefix = protocol.prefix + "."
+	} else {
+		protocol.currentUserContextKey = "user"
+		protocol.currentQualifiedKeyContextKey = "key"
+	}
+}
