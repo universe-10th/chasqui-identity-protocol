@@ -8,6 +8,7 @@ import (
 	"github.com/universe-10th/chasqui/types"
 	"github.com/universe-10th/identity/authreqs"
 	"github.com/universe-10th/identity/credentials"
+	"github.com/universe-10th/identity/realms"
 )
 
 // Requires authorization (login and perhaps an extra set
@@ -69,8 +70,31 @@ func (authProtocol *AuthProtocol) Current(attendant *chasqui.Attendant) credenti
 	return authProtocol.getCredential(attendant)
 }
 
-// Given a server, it enumerates all the current sessions
+// Given a server, enumerates all the current sessions
 // telling their qualified key and their underlying socket.
-func (authProtocol *AuthProtocol) Enumerate(server *chasqui.Server, callback func(*types2.QualifiedKey, *chasqui.Attendant) bool) {
+// If the callback returns true, the iteration will stop.
+func (authProtocol *AuthProtocol) EnumerateSessions(server *chasqui.Server, callback func(*types2.QualifiedKey, *chasqui.Attendant) bool) {
 	authProtocol.domain.Enumerate(server, callback)
+}
+
+// Gets the count of realms in this auth protocol.
+func (authProtocol *AuthProtocol) RealmsCount() int {
+	return len(authProtocol.realms)
+}
+
+// Enumerates all the realms in this auth protocol.
+// If the callback returns true, the iteration will stop.
+func (authProtocol *AuthProtocol) EnumerateRealms(callback func(key string, realm *realms.Realm) bool) {
+	for key, realm := range authProtocol.realms {
+		if callback(key, realm) {
+			return
+		}
+	}
+}
+
+// Gets a particular realm in this auth protocol.
+// It also returns whether a realm was found.
+func (authProtocol *AuthProtocol) Realm(key string) (*realms.Realm, bool) {
+	realm, ok := authProtocol.realms[key]
+	return realm, ok
 }
