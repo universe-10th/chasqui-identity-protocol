@@ -98,3 +98,13 @@ func (authProtocol *AuthProtocol) Realm(key string) (*realms.Realm, bool) {
 	realm, ok := authProtocol.realms[key]
 	return realm, ok
 }
+
+// Returns the rule of the underlying domain.
+func (authProtocol *AuthProtocol) DomainRule() types2.DomainRule {
+	return authProtocol.domain.Rule()
+}
+
+// Returns the custom criterion of the underlying domain.
+func (authProtocol *AuthProtocol) DomainCustomCriterion() types2.DomainCustomCriterion {
+	return authProtocol.domain.CustomCriterion()
+}
