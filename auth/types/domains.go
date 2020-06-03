@@ -196,6 +196,16 @@ func (domain *Domain) Enumerate(server *chasqui.Server, callback func(*Qualified
 	}
 }
 
+// Gets the rule the domain was created with.
+func (domain *Domain) Rule() DomainRule {
+	return domain.rule
+}
+
+// Gets the custom criterion the domain was created with.
+func (domain *Domain) CustomCriterion() DomainCustomCriterion {
+	return domain.criterion
+}
+
 // Creates a new domain instance for an auth protocol, given it rule
 // and, if applicable, the custom criterion.
 func NewDomain(rule DomainRule, criterion DomainCustomCriterion) *Domain {
