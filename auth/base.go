@@ -78,4 +78,6 @@ func NewAuthProtocol(realms map[string]*realms.Realm, options ...AuthOption) *Au
 		protocol.currentUserContextKey = "user"
 		protocol.currentQualifiedKeyContextKey = "key"
 	}
+
+	return protocol
 }
