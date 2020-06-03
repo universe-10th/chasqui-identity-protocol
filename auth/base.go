@@ -71,9 +71,9 @@ func NewAuthProtocol(realms map[string]*realms.Realm, options ...AuthOption) *Au
 	}
 
 	if protocol.prefix != "" {
-		protocol.currentUserContextKey = protocol.prefix + ".user"
-		protocol.currentQualifiedKeyContextKey = protocol.prefix + ".key"
 		protocol.prefix = protocol.prefix + "."
+		protocol.currentUserContextKey = protocol.prefix + "user"
+		protocol.currentQualifiedKeyContextKey = protocol.prefix + "key"
 	} else {
 		protocol.currentUserContextKey = "user"
 		protocol.currentQualifiedKeyContextKey = "key"
