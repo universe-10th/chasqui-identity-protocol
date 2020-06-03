@@ -5,6 +5,8 @@ import (
 	"github.com/universe-10th/identity/realms"
 	"github.com/universe-10th/identity/realms/login/activity"
 	"github.com/universe-10th/identity/realms/login/password"
+	"github.com/universe-10th/identity/realms/login/punish"
+	"time"
 )
 
 func MakeSamples() map[string]*DummyCredential {
@@ -20,4 +22,7 @@ func MakeSamples() map[string]*DummyCredential {
 	}
 }
 
-var DummyRealm = realms.NewRealm(credentials.NewSource(NewDummyBroker(MakeSamples()), &DummyCredential{}), activity.ActivityStep(0), password.PasswordCheckingStep(0))
+var DummyRealm = realms.NewRealm(
+	credentials.NewSource(NewDummyBroker(MakeSamples()), &DummyCredential{}),
+	activity.ActivityStep(0), password.PasswordCheckingStep(0), &punish.PunishmentCheckStep{TimeFormat: time.RFC3339},
+)

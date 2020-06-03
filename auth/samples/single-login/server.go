@@ -6,13 +6,12 @@ import (
 	realms2 "github.com/universe-10th/chasqui-identity-protocols/auth/samples/realms"
 	protocols "github.com/universe-10th/chasqui-protocols"
 	"github.com/universe-10th/chasqui/marshalers/json"
-	"github.com/universe-10th/identity/credentials"
 	"github.com/universe-10th/identity/realms"
 )
 
 var funnel, _ = protocols.NewProtocolsFunnel([]protocols.Protocol{NewChatProtocol(auth.NewAuthProtocol(
 	map[string]*realms.Realm{
-		"main": realms.NewRealm(credentials.NewSource(&realms2.DummyBroker{}, &realms2.DummyCredential{})),
+		"main": realms2.DummyRealm,
 	}, auth.WithPrefix("my-auth"),
 ))})
 
