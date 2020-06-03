@@ -6,7 +6,6 @@ import (
 )
 
 var ErrBadValue = errors.New("expecting a string value")
-var ErrNotFound = errors.New("dummy credential not found")
 
 type DummyBroker struct {
 	users map[string]*DummyCredential
@@ -21,7 +20,7 @@ func (broker *DummyBroker) ByIdentifier(identifier interface{}, template credent
 	if strIdentifier, ok := identifier.(string); !ok {
 		return nil, ErrBadValue
 	} else if result, ok := broker.users[strIdentifier]; !ok {
-		return nil, ErrNotFound
+		return nil, nil
 	} else {
 		return result, nil
 	}
