@@ -63,7 +63,7 @@ func (protocol *ChatProtocol) Handlers() protocols.MessageHandlers {
 			} else {
 				source := protocol.auth.Current(attendant)
 				// noinspection GoUnhandledErrorResult
-				attendant2.Send("MSG_RECEIVED", types.Args{source.(identified.Identified).Identification().(string), text}, nil)
+				attendant2.Send("PMSG_RECEIVED", types.Args{source.(identified.Identified).Identification().(string), text}, nil)
 			}
 		},
 	})
