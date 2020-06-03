@@ -35,6 +35,11 @@ func (authProtocol *AuthProtocol) Handlers() protocols.MessageHandlers {
 				} else if credential, err := currentRealm.Login(args[0], password); err == nil {
 					qualifiedKey := types2.NewQualifiedKey(credential, args[0], currentRealm)
 					reject, ghost := authProtocol.domain.CheckLanding(credential, qualifiedKey, server, attendant)
+
+					for attendant := range ghost {
+						authProtocol.Logout(server, attendant, "ghosted", "")
+					}
+
 					if reject {
 						_ = attendant.Send(authProtocol.prefix+"login.rejected", nil, nil)
 						authProtocol.OnLogin().Trigger(server, attendant, args[0], password, realmKey, credential, ErrRejectedByDomain)
@@ -44,10 +49,6 @@ func (authProtocol *AuthProtocol) Handlers() protocols.MessageHandlers {
 						authProtocol.setQualifiedKey(attendant, unifiedKey)
 						_ = attendant.Send(authProtocol.prefix+"login.success", nil, nil)
 						authProtocol.OnLogin().Trigger(server, attendant, args[0], password, realmKey, credential, nil)
-					}
-
-					for attendant := range ghost {
-						authProtocol.Logout(server, attendant, "ghosted", "")
 					}
 				} else {
 					message := "login failed: internal error"
