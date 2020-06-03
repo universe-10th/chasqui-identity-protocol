@@ -181,8 +181,9 @@ func (domain *Domain) RemoveSession(key QualifiedKey, server *chasqui.Server, at
 	domain.clearKey(server, qualifiedKey)
 }
 
-// Given a server, it enumerates all the current sessions
+// Given a server, enumerates all the current sessions
 // telling their qualified key and their underlying socket.
+// If the callback returns true, the iteration will stop.
 func (domain *Domain) Enumerate(server *chasqui.Server, callback func(*QualifiedKey, *chasqui.Attendant) bool) {
 	if serverSessions, ok := domain.sessions[server]; ok {
 		for qualifiedKey, attendantsMap := range serverSessions {
